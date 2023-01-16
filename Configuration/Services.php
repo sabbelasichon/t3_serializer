@@ -9,7 +9,9 @@ declare(strict_types=1);
  * LICENSE.txt file that was distributed with this source code.
  */
 
-use Psr\Cache\CacheItemPoolInterface;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\AnnotationRegistry;
+use Doctrine\Common\Annotations\Reader;
 use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyAccessCompilerPass;
 use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyInfoCompilerPass;
 use Ssch\T3Serializer\DependencyInjection\Compiler\SerializerCompilerPass;
@@ -26,7 +28,6 @@ use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\Extractor\SerializerExtractor;
 use Symfony\Component\PropertyInfo\PropertyAccessExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyDescriptionExtractorInterface;
-use Symfony\Component\PropertyInfo\PropertyInfoCacheExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyInitializableExtractorInterface;
@@ -43,7 +44,6 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\YamlEncoder;
 use Symfony\Component\Serializer\Mapping\ClassDiscriminatorFromClassMetadata;
 use Symfony\Component\Serializer\Mapping\ClassDiscriminatorResolverInterface;
-use Symfony\Component\Serializer\Mapping\Factory\CacheClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderChain;
@@ -66,22 +66,21 @@ use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Normalizer\UnwrappingDenormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
+use TYPO3\CMS\Core\Core\Environment;
 
 return static function (ContainerConfigurator $containerConfigurator, ContainerBuilder $containerBuilder): void {
     $services = $containerConfigurator->services();
     $services->defaults()
         ->private()
-        ->autowire()
-        ->autoconfigure();
+        ->autowire();
 
     $services->load('Ssch\\T3Serializer\\', __DIR__ . '/../Classes/');
 
     $containerConfigurator->parameters()
-        ->set('kernel.debug', false);
+        ->set('kernel.debug', ! Environment::getContext()->isProduction());
 
     $services
         ->set('serializer', Serializer::class)
-        ->autoconfigure(false)
         ->args([[], []])
         ->alias(SerializerInterface::class, 'serializer')
         ->alias(NormalizerInterface::class, 'serializer')
@@ -90,28 +89,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->alias(DecoderInterface::class, 'serializer')
         ->alias('serializer.property_accessor', 'property_accessor');
 
-    $containerBuilder->registerForAutoconfiguration(EncoderInterface::class)
-        ->addTag('serializer.encoder');
-    $containerBuilder->registerForAutoconfiguration(DecoderInterface::class)
-        ->addTag('serializer.decoder');
-    $containerBuilder->registerForAutoconfiguration(NormalizerInterface::class)
-        ->addTag('serializer.normalizer');
-    $containerBuilder->registerForAutoconfiguration(DenormalizerInterface::class)
-        ->addTag('serializer.normalizer');
-
-    $containerBuilder->registerForAutoconfiguration(PropertyListExtractorInterface::class)
-        ->addTag('property_info.list_extractor');
-    $containerBuilder->registerForAutoconfiguration(PropertyTypeExtractorInterface::class)
-        ->addTag('property_info.type_extractor');
-    $containerBuilder->registerForAutoconfiguration(PropertyDescriptionExtractorInterface::class)
-        ->addTag('property_info.description_extractor');
-    $containerBuilder->registerForAutoconfiguration(PropertyAccessExtractorInterface::class)
-        ->addTag('property_info.access_extractor');
-    $containerBuilder->registerForAutoconfiguration(PropertyInitializableExtractorInterface::class)
-        ->addTag('property_info.initializable_extractor');
-
     $services
-
         // Discriminator Map
         ->set('serializer.mapping.class_discriminator_resolver', ClassDiscriminatorFromClassMetadata::class)
         ->args([service('serializer.mapping.class_metadata_factory')])
@@ -304,6 +282,18 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->alias(PropertyReadInfoExtractorInterface::class, 'property_info.reflection_extractor')
         ->alias(PropertyWriteInfoExtractorInterface::class, 'property_info.reflection_extractor')
     ;
+
+    $containerConfigurator->services()
+        ->set('annotations.reader', AnnotationReader::class)
+        ->call('addGlobalIgnoredName', [
+            'required',
+            service('annotations.dummy_registry')
+                ->ignoreOnInvalid(), // dummy arg to register class_exists as annotation loader only when required
+        ])
+        ->set('annotations.dummy_registry', AnnotationRegistry::class)
+        ->call('registerUniqueLoader', ['class_exists'])
+        ->alias('annotation_reader', 'annotations.reader')
+        ->alias(Reader::class, 'annotation_reader');
 
     $containerBuilder->addCompilerPass(new PropertyAccessCompilerPass(new PropertyAccessConfigurationResolver()));
     $containerBuilder->addCompilerPass(new PropertyInfoCompilerPass());

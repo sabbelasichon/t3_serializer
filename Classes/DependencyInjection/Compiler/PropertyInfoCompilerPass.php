@@ -18,11 +18,27 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
+use Symfony\Component\PropertyInfo\PropertyAccessExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyDescriptionExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyInitializableExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyListExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
 
 final class PropertyInfoCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
+        $container->registerForAutoconfiguration(PropertyListExtractorInterface::class)
+            ->addTag('property_info.list_extractor');
+        $container->registerForAutoconfiguration(PropertyTypeExtractorInterface::class)
+            ->addTag('property_info.type_extractor');
+        $container->registerForAutoconfiguration(PropertyDescriptionExtractorInterface::class)
+            ->addTag('property_info.description_extractor');
+        $container->registerForAutoconfiguration(PropertyAccessExtractorInterface::class)
+            ->addTag('property_info.access_extractor');
+        $container->registerForAutoconfiguration(PropertyInitializableExtractorInterface::class)
+            ->addTag('property_info.initializable_extractor');
+
         if (
             ContainerBuilder::willBeAvailable(
                 'phpstan/phpdoc-parser',

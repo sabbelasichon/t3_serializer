@@ -1,5 +1,7 @@
 <?php
 
+use Ssch\T3Serializer\Controller\TestController;
+
 defined('TYPO3_MODE') || die('Access denied.');
 
 if (!isset($GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['t3_serializer']) || !is_array($GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['t3_serializer'])) {
@@ -12,3 +14,14 @@ if (!isset($GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations'][
         'groups' => ['system'],
     ];
 }
+
+\TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
+    'T3Serializer',
+    'Serializer',
+    [
+        TestController::class => 'index',
+    ],
+    [
+        TestController::class => 'index',
+    ]
+);
