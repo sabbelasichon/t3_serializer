@@ -29,15 +29,15 @@ final class PropertyInfoCompilerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container)
     {
         $container->registerForAutoconfiguration(PropertyListExtractorInterface::class)
-            ->addTag('property_info.list_extractor');
+                         ->addTag('property_info.list_extractor');
         $container->registerForAutoconfiguration(PropertyTypeExtractorInterface::class)
-            ->addTag('property_info.type_extractor');
+                         ->addTag('property_info.type_extractor');
         $container->registerForAutoconfiguration(PropertyDescriptionExtractorInterface::class)
-            ->addTag('property_info.description_extractor');
+                         ->addTag('property_info.description_extractor');
         $container->registerForAutoconfiguration(PropertyAccessExtractorInterface::class)
-            ->addTag('property_info.access_extractor');
+                         ->addTag('property_info.access_extractor');
         $container->registerForAutoconfiguration(PropertyInitializableExtractorInterface::class)
-            ->addTag('property_info.initializable_extractor');
+                         ->addTag('property_info.initializable_extractor');
 
         if (
             ContainerBuilder::willBeAvailable(

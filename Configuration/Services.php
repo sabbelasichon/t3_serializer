@@ -72,6 +72,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
     $services = $containerConfigurator->services();
     $services->defaults()
         ->private()
+        ->autoconfigure()
         ->autowire();
 
     $services->load('Ssch\\T3Serializer\\', __DIR__ . '/../Classes/');
@@ -96,12 +97,6 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->alias(ClassDiscriminatorResolverInterface::class, 'serializer.mapping.class_discriminator_resolver')
 
         // Normalizer
-//              ->set('serializer.normalizer.constraint_violation_list', ConstraintViolationListNormalizer::class)
-//              ->args([1 => service('serializer.name_converter.metadata_aware')])
-//              ->autowire(true)
-//        ->tag('serializer.normalizer', [
-//            'priority' => -915,
-//        ])
         ->set('serializer.normalizer.mime_message', MimeMessageNormalizer::class)
         ->args([service('serializer.normalizer.property')])
         ->tag('serializer.normalizer', [
@@ -139,10 +134,6 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->tag('serializer.normalizer', [
             'priority' => 1000,
         ])
-//              ->set('serializer.normalizer.uid', UidNormalizer::class)
-//              ->tag('serializer.normalizer', ['priority' => -890])
-//              ->set('serializer.normalizer.form_error', FormErrorNormalizer::class)
-//              ->tag('serializer.normalizer', ['priority' => -915])
         ->set('serializer.normalizer.object', ObjectNormalizer::class)
         ->args([
             service('serializer.mapping.class_metadata_factory'),

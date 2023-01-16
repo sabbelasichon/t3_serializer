@@ -43,13 +43,13 @@ final class SerializerCompilerPass implements CompilerPassInterface
         $chainLoader = $container->getDefinition('serializer.mapping.chain_loader');
 
         $container->registerForAutoconfiguration(EncoderInterface::class)
-            ->addTag('serializer.encoder');
+                         ->addTag('serializer.encoder');
         $container->registerForAutoconfiguration(DecoderInterface::class)
-            ->addTag('serializer.decoder');
+                         ->addTag('serializer.decoder');
         $container->registerForAutoconfiguration(NormalizerInterface::class)
-            ->addTag('serializer.normalizer');
+                         ->addTag('serializer.normalizer');
         $container->registerForAutoconfiguration(DenormalizerInterface::class)
-            ->addTag('serializer.normalizer');
+                         ->addTag('serializer.normalizer');
 
         if (! class_exists(Yaml::class)) {
             $container->removeDefinition('serializer.encoder.yaml');
