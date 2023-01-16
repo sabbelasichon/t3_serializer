@@ -13,20 +13,23 @@ namespace Ssch\T3Serializer\DependencyInjection;
 
 use TYPO3\CMS\Core\Package\PackageManager;
 
-final class SerializerConfigurationCollector
+final class ConfigurationCollector
 {
     private PackageManager $packageManager;
 
-    public function __construct(PackageManager $packageManager)
+    private string $configurationFileName;
+
+    public function __construct(PackageManager $packageManager, string $configurationFileName)
     {
         $this->packageManager = $packageManager;
+        $this->configurationFileName = $configurationFileName;
     }
 
     public function collect(): \ArrayObject
     {
         $config = new \ArrayObject();
         foreach ($this->packageManager->getAvailablePackages() as $package) {
-            $serializerConfigurationFile = $package->getPackagePath() . 'Configuration/Serializer.php';
+            $serializerConfigurationFile = $package->getPackagePath() . 'Configuration/' . $this->configurationFileName;
             if (file_exists($serializerConfigurationFile)) {
                 $serializerInPackage = require $serializerConfigurationFile;
                 if (is_array($serializerInPackage)) {

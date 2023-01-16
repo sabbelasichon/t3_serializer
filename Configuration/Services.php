@@ -10,6 +10,10 @@ declare(strict_types=1);
  */
 
 use Psr\Cache\CacheItemPoolInterface;
+use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyAccessCompilerPass;
+use Ssch\T3Serializer\DependencyInjection\Compiler\SerializerCompilerPass;
+use Ssch\T3Serializer\DependencyInjection\PropertyAccessConfigurationResolver;
+use Ssch\T3Serializer\DependencyInjection\SerializerConfigurationResolver;
 use Symfony\Bundle\FrameworkBundle\CacheWarmer\SerializerCacheWarmer;
 use Symfony\Component\Cache\Adapter\PhpArrayAdapter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -260,4 +264,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ])
         ->alias(PropertyAccessorInterface::class, 'property_accessor')
     ;
+
+    $containerBuilder->addCompilerPass(new SerializerCompilerPass(new SerializerConfigurationResolver()));
+    $containerBuilder->addCompilerPass(new PropertyAccessCompilerPass(new PropertyAccessConfigurationResolver()));
 };
