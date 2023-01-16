@@ -11,20 +11,31 @@ declare(strict_types=1);
 
 namespace Ssch\T3Serializer\DependencyInjection\Compiler;
 
+use Ssch\T3Serializer\DependencyInjection\SerializerConfigurationCollector;
+use Ssch\T3Serializer\DependencyInjection\SerializerConfigurationResolver;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\Serializer\Normalizer\UnwrappingDenormalizer;
 use Symfony\Component\Yaml\Yaml;
+use TYPO3\CMS\Core\Core\Bootstrap;
+use TYPO3\CMS\Core\Information\Typo3Version;
+use TYPO3\CMS\Core\Package\PackageManager;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 final class SerializerCompilerPass implements CompilerPassInterface
 {
+    private SerializerConfigurationResolver $serializerConfigurationResolver;
+
+    public function __construct(SerializerConfigurationResolver $serializerConfigurationResolver)
+    {
+        $this->serializerConfigurationResolver = $serializerConfigurationResolver;
+    }
+
     public function process(ContainerBuilder $container)
     {
-        $config = [];
-
-        $chainLoader = $container->getDefinition('serializer.mapping.chain_loader');
+        $config = $this->collectSerializerConfigurationsFromPackages();
 
         if (! class_exists(Yaml::class)) {
             $container->removeDefinition('serializer.encoder.yaml');
@@ -68,5 +79,22 @@ final class SerializerCompilerPass implements CompilerPassInterface
         if (isset($config['default_context']) && $config['default_context']) {
             $container->setParameter('serializer.default_context', $config['default_context']);
         }
+    }
+
+    private function collectSerializerConfigurationsFromPackages()
+    {
+        $versionInformation = GeneralUtility::makeInstance(Typo3Version::class);
+        if ($versionInformation->getMajorVersion() >= 11) {
+            $coreCache = Bootstrap::createCache('core');
+            $packageCache = Bootstrap::createPackageCache($coreCache);
+            $packageManager = Bootstrap::createPackageManager(PackageManager::class, $packageCache);
+        } else {
+            $coreCache = Bootstrap::createCache('core');
+            $packageManager = Bootstrap::createPackageManager(PackageManager::class, $coreCache);
+        }
+
+        $config = (new SerializerConfigurationCollector($packageManager))->collect();
+
+        return $this->serializerConfigurationResolver->resolve($config->getArrayCopy());
     }
 }

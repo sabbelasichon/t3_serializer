@@ -25,5 +25,16 @@ final class SerializerConfigurationResolver
 
     private function configureDefaultOptions(OptionsResolver $resolver): void
     {
+        $resolver
+            ->setDefault('name_converter', null)
+            ->setInfo('name_converter', 'The service id of the NameConverter');
+        $resolver->setDefault('enable_annotations', true);
+        $resolver
+            ->setDefault('circular_reference_handler', null)
+            ->setInfo('circular_reference_handler', 'The service id of the CircularReferenceHandler');
+        $resolver
+            ->setDefault('max_depth_handler', null)
+            ->setInfo('max_depth_handler', 'The service id of the MaxDepthHandler');
+        $resolver->setDefault('default_context', []);
     }
 }
