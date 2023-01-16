@@ -11,11 +11,10 @@ declare(strict_types=1);
 
 use Psr\Cache\CacheItemPoolInterface;
 use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyAccessCompilerPass;
+use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyInfoCompilerPass;
 use Ssch\T3Serializer\DependencyInjection\Compiler\SerializerCompilerPass;
 use Ssch\T3Serializer\DependencyInjection\PropertyAccessConfigurationResolver;
 use Ssch\T3Serializer\DependencyInjection\SerializerConfigurationResolver;
-use Symfony\Bundle\FrameworkBundle\CacheWarmer\SerializerCacheWarmer;
-use Symfony\Component\Cache\Adapter\PhpArrayAdapter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\abstract_arg;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -23,12 +22,19 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\Extractor\SerializerExtractor;
 use Symfony\Component\PropertyInfo\PropertyAccessExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyDescriptionExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyInfoCacheExtractor;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyInitializableExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyListExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyReadInfoExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyWriteInfoExtractorInterface;
+use Symfony\Component\Serializer\DependencyInjection\SerializerPass;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
@@ -45,13 +51,11 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
 use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer;
-use Symfony\Component\Serializer\Normalizer\ConstraintViolationListNormalizer;
 use Symfony\Component\Serializer\Normalizer\DataUriNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateIntervalNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeZoneNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use Symfony\Component\Serializer\Normalizer\FormErrorNormalizer;
 use Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer;
 use Symfony\Component\Serializer\Normalizer\MimeMessageNormalizer;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
@@ -59,7 +63,6 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\ProblemNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
-use Symfony\Component\Serializer\Normalizer\UidNormalizer;
 use Symfony\Component\Serializer\Normalizer\UnwrappingDenormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -73,10 +76,24 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
 
     $services->load('Ssch\\T3Serializer\\', __DIR__ . '/../Classes/');
 
+    $containerConfigurator->parameters()
+        ->set('kernel.debug', false);
+
+    $services
+        ->set('serializer', Serializer::class)
+        ->autoconfigure(false)
+        ->args([[], []])
+        ->alias(SerializerInterface::class, 'serializer')
+        ->alias(NormalizerInterface::class, 'serializer')
+        ->alias(DenormalizerInterface::class, 'serializer')
+        ->alias(EncoderInterface::class, 'serializer')
+        ->alias(DecoderInterface::class, 'serializer')
+        ->alias('serializer.property_accessor', 'property_accessor');
+
     $containerBuilder->registerForAutoconfiguration(EncoderInterface::class)
         ->addTag('serializer.encoder');
     $containerBuilder->registerForAutoconfiguration(DecoderInterface::class)
-        ->addTag('serializer.encoder');
+        ->addTag('serializer.decoder');
     $containerBuilder->registerForAutoconfiguration(NormalizerInterface::class)
         ->addTag('serializer.normalizer');
     $containerBuilder->registerForAutoconfiguration(DenormalizerInterface::class)
@@ -93,15 +110,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
     $containerBuilder->registerForAutoconfiguration(PropertyInitializableExtractorInterface::class)
         ->addTag('property_info.initializable_extractor');
 
-    $containerConfigurator->services()
-        ->set('serializer', Serializer::class)
-        ->args([[], []])
-        ->alias(SerializerInterface::class, 'serializer')
-        ->alias(NormalizerInterface::class, 'serializer')
-        ->alias(DenormalizerInterface::class, 'serializer')
-        ->alias(EncoderInterface::class, 'serializer')
-        ->alias(DecoderInterface::class, 'serializer')
-        ->alias('serializer.property_accessor', 'property_accessor')
+    $services
 
         // Discriminator Map
         ->set('serializer.mapping.class_discriminator_resolver', ClassDiscriminatorFromClassMetadata::class)
@@ -112,9 +121,9 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
 //              ->set('serializer.normalizer.constraint_violation_list', ConstraintViolationListNormalizer::class)
 //              ->args([1 => service('serializer.name_converter.metadata_aware')])
 //              ->autowire(true)
-        ->tag('serializer.normalizer', [
-            'priority' => -915,
-        ])
+//        ->tag('serializer.normalizer', [
+//            'priority' => -915,
+//        ])
         ->set('serializer.normalizer.mime_message', MimeMessageNormalizer::class)
         ->args([service('serializer.normalizer.property')])
         ->tag('serializer.normalizer', [
@@ -265,6 +274,39 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->alias(PropertyAccessorInterface::class, 'property_accessor')
     ;
 
-    $containerBuilder->addCompilerPass(new SerializerCompilerPass(new SerializerConfigurationResolver()));
+    $containerConfigurator->services()
+        ->set('property_info', PropertyInfoExtractor::class)
+        ->args([[], [], [], [], []])
+        ->alias(PropertyAccessExtractorInterface::class, 'property_info')
+        ->alias(PropertyDescriptionExtractorInterface::class, 'property_info')
+        ->alias(PropertyInfoExtractorInterface::class, 'property_info')
+        ->alias(PropertyTypeExtractorInterface::class, 'property_info')
+        ->alias(PropertyListExtractorInterface::class, 'property_info')
+        ->alias(PropertyInitializableExtractorInterface::class, 'property_info')
+//        ->set('property_info.cache', PropertyInfoCacheExtractor::class)
+//        ->decorate('property_info')
+//        ->args([service('property_info.cache.inner'), service('cache.property_info')])
+
+        // Extractor
+        ->set('property_info.reflection_extractor', ReflectionExtractor::class)
+        ->tag('property_info.list_extractor', [
+            'priority' => -1000,
+        ])
+        ->tag('property_info.type_extractor', [
+            'priority' => -1002,
+        ])
+        ->tag('property_info.access_extractor', [
+            'priority' => -1000,
+        ])
+        ->tag('property_info.initializable_extractor', [
+            'priority' => -1000,
+        ])
+        ->alias(PropertyReadInfoExtractorInterface::class, 'property_info.reflection_extractor')
+        ->alias(PropertyWriteInfoExtractorInterface::class, 'property_info.reflection_extractor')
+    ;
+
     $containerBuilder->addCompilerPass(new PropertyAccessCompilerPass(new PropertyAccessConfigurationResolver()));
+    $containerBuilder->addCompilerPass(new PropertyInfoCompilerPass());
+    $containerBuilder->addCompilerPass(new SerializerCompilerPass(new SerializerConfigurationResolver()));
+    $containerBuilder->addCompilerPass(new SerializerPass());
 };
