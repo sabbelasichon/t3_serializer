@@ -174,14 +174,14 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         )
         ->set('serializer.normalizer.property', PropertyNormalizer::class)
         ->args([
-              service('serializer.mapping.class_metadata_factory'),
-              service('serializer.name_converter.metadata_aware'),
-              service('property_info')
-                  ->ignoreOnInvalid(),
-              service('serializer.mapping.class_discriminator_resolver')
-                  ->ignoreOnInvalid(),
-              null,
-          ])
+            service('serializer.mapping.class_metadata_factory'),
+            service('serializer.name_converter.metadata_aware'),
+            service('property_info')
+                ->ignoreOnInvalid(),
+            service('serializer.mapping.class_discriminator_resolver')
+                ->ignoreOnInvalid(),
+            null,
+        ])
         ->alias(PropertyNormalizer::class, 'serializer.normalizer.property')
         ->deprecate(
             'symfony/serializer',
@@ -190,8 +190,8 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         )
         ->set('serializer.denormalizer.array', ArrayDenormalizer::class)
         ->tag('serializer.normalizer', [
-              'priority' => -990,
-          ])
+            'priority' => -990,
+        ])
 
         // Loader
         ->set('serializer.mapping.chain_loader', LoaderChain::class)
@@ -237,8 +237,8 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->set('property_info.serializer_extractor', SerializerExtractor::class)
         ->args([service('serializer.mapping.class_metadata_factory')])
         ->tag('property_info.list_extractor', [
-              'priority' => -999,
-          ]);
+            'priority' => -999,
+        ]);
 
     if (interface_exists(\BackedEnum::class)) {
         $containerConfigurator->services()
