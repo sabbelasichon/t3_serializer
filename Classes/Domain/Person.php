@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Ssch\T3Serializer\Domain;
 
 use Symfony\Component\Serializer\Annotation\Groups;
+use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
 
 final class Person
 {
@@ -22,10 +23,16 @@ final class Person
 
     private string $lastName;
 
+    /**
+     * @var ObjectStorage<Person>
+     */
+    private ObjectStorage $persons;
+
     public function __construct(string $firstName, string $lastName)
     {
         $this->firstName = $firstName;
         $this->lastName = $lastName;
+        $this->persons = new ObjectStorage();
     }
 
     public function getFirstName(): string
@@ -36,5 +43,25 @@ final class Person
     public function getLastName(): string
     {
         return $this->lastName;
+    }
+
+    /**
+     * @return Person[]
+     */
+    public function getPersons(): array
+    {
+        return $this->persons->toArray();
+    }
+
+    public function addPerson(self $person): void
+    {
+        $this->persons->attach($person);
+    }
+
+    public function setPersons(array $persons): void
+    {
+        foreach ($persons as $person) {
+            $this->persons->attach($person);
+        }
     }
 }

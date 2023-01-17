@@ -31,10 +31,21 @@ final class TestController extends ActionController
     public function indexAction(): ResponseInterface
     {
         $context = (new ObjectNormalizerContextBuilder())
-            ->withGroups('default')
             ->toArray();
 
+        $person1 = new Person('Torsten', 'Müller');
+        $person2 = new Person('Frank', 'Müller');
+
         $object = new Person('max', 'mustermann');
-        return new HtmlResponse($this->serializer->serialize($object, JsonEncoder::FORMAT, $context));
+        $object->addPerson($person1);
+        $object->addPerson($person2);
+
+        $json = $this->serializer->serialize($object, JsonEncoder::FORMAT, $context);
+        $objects = $this->serializer->deserialize($json, Person::class, JsonEncoder::FORMAT);
+
+        \TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($objects);
+        exit;
+
+        return new HtmlResponse($json);
     }
 }

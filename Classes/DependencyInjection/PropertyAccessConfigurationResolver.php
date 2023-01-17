@@ -11,9 +11,10 @@ declare(strict_types=1);
 
 namespace Ssch\T3Serializer\DependencyInjection;
 
+use Ssch\T3Serializer\Contract\ConfigurationResolver;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-final class PropertyAccessConfigurationResolver
+final class PropertyAccessConfigurationResolver implements ConfigurationResolver
 {
     public function resolve(array $configuration): array
     {

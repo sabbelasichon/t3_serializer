@@ -12,8 +12,6 @@ declare(strict_types=1);
 namespace Ssch\T3Serializer\DependencyInjection\Compiler;
 
 use Ssch\T3Serializer\DependencyInjection\ConfigurationCollector;
-use Ssch\T3Serializer\DependencyInjection\PackageManagerFactory;
-use Ssch\T3Serializer\DependencyInjection\PropertyAccessConfigurationResolver;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -24,16 +22,16 @@ use Symfony\Component\PropertyInfo\PropertyWriteInfoExtractorInterface;
 
 final class PropertyAccessCompilerPass implements CompilerPassInterface
 {
-    private PropertyAccessConfigurationResolver $propertyAccessConfigurationResolver;
+    private ConfigurationCollector $configurationCollector;
 
-    public function __construct(PropertyAccessConfigurationResolver $propertyAccessConfigurationResolver)
+    public function __construct(ConfigurationCollector $configurationCollector)
     {
-        $this->propertyAccessConfigurationResolver = $propertyAccessConfigurationResolver;
+        $this->configurationCollector = $configurationCollector;
     }
 
     public function process(ContainerBuilder $container): void
     {
-        $config = $this->collectPropertyAccessConfigurationsFromPackages();
+        $config = $this->configurationCollector->collect();
 
         $magicMethods = PropertyAccessor::DISALLOW_MAGIC_METHODS;
         $magicMethods |= $config['magic_call'] ? PropertyAccessor::MAGIC_CALL : 0;
@@ -55,17 +53,6 @@ final class PropertyAccessCompilerPass implements CompilerPassInterface
             ->replaceArgument(
                 4,
                 new Reference(PropertyWriteInfoExtractorInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)
-            )
-        ;
-    }
-
-    private function collectPropertyAccessConfigurationsFromPackages(): array
-    {
-        $config = (new ConfigurationCollector(
-            PackageManagerFactory::createPackageManager(),
-            'PropertyAccess.php'
-        ))->collect();
-
-        return $this->propertyAccessConfigurationResolver->resolve($config->getArrayCopy());
+            );
     }
 }

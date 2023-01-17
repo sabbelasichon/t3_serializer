@@ -12,8 +12,6 @@ declare(strict_types=1);
 namespace Ssch\T3Serializer\DependencyInjection\Compiler;
 
 use Ssch\T3Serializer\DependencyInjection\ConfigurationCollector;
-use Ssch\T3Serializer\DependencyInjection\PackageManagerFactory;
-use Ssch\T3Serializer\DependencyInjection\SerializerConfigurationResolver;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -30,26 +28,26 @@ use Symfony\Component\Yaml\Yaml;
 
 final class SerializerCompilerPass implements CompilerPassInterface
 {
-    private SerializerConfigurationResolver $serializerConfigurationResolver;
+    private ConfigurationCollector $configurationCollector;
 
-    public function __construct(SerializerConfigurationResolver $serializerConfigurationResolver)
+    public function __construct(ConfigurationCollector $configurationCollector)
     {
-        $this->serializerConfigurationResolver = $serializerConfigurationResolver;
+        $this->configurationCollector = $configurationCollector;
     }
 
     public function process(ContainerBuilder $container): void
     {
-        $config = $this->collectSerializerConfigurationsFromPackages();
+        $config = $this->configurationCollector->collect();
         $chainLoader = $container->getDefinition('serializer.mapping.chain_loader');
 
         $container->registerForAutoconfiguration(EncoderInterface::class)
-                         ->addTag('serializer.encoder');
+            ->addTag('serializer.encoder');
         $container->registerForAutoconfiguration(DecoderInterface::class)
-                         ->addTag('serializer.decoder');
+            ->addTag('serializer.decoder');
         $container->registerForAutoconfiguration(NormalizerInterface::class)
-                         ->addTag('serializer.normalizer');
+            ->addTag('serializer.normalizer');
         $container->registerForAutoconfiguration(DenormalizerInterface::class)
-                         ->addTag('serializer.normalizer');
+            ->addTag('serializer.normalizer');
 
         if (! class_exists(Yaml::class)) {
             $container->removeDefinition('serializer.encoder.yaml');
@@ -106,15 +104,5 @@ final class SerializerCompilerPass implements CompilerPassInterface
         if (isset($config['default_context']) && $config['default_context']) {
             $container->setParameter('serializer.default_context', $config['default_context']);
         }
-    }
-
-    private function collectSerializerConfigurationsFromPackages(): array
-    {
-        $config = (new ConfigurationCollector(
-            PackageManagerFactory::createPackageManager(),
-            'Serializer.php'
-        ))->collect();
-
-        return $this->serializerConfigurationResolver->resolve($config->getArrayCopy());
     }
 }

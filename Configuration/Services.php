@@ -15,6 +15,8 @@ use Doctrine\Common\Annotations\Reader;
 use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyAccessCompilerPass;
 use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyInfoCompilerPass;
 use Ssch\T3Serializer\DependencyInjection\Compiler\SerializerCompilerPass;
+use Ssch\T3Serializer\DependencyInjection\ConfigurationCollector;
+use Ssch\T3Serializer\DependencyInjection\PackageManagerFactory;
 use Ssch\T3Serializer\DependencyInjection\PropertyAccessConfigurationResolver;
 use Ssch\T3Serializer\DependencyInjection\SerializerConfigurationResolver;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -24,6 +26,7 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\PropertyInfo\DependencyInjection\PropertyInfoPass;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\Extractor\SerializerExtractor;
 use Symfony\Component\PropertyInfo\PropertyAccessExtractorInterface;
@@ -286,8 +289,21 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->alias('annotation_reader', 'annotations.reader')
         ->alias(Reader::class, 'annotation_reader');
 
-    $containerBuilder->addCompilerPass(new PropertyAccessCompilerPass(new PropertyAccessConfigurationResolver()));
+    $propertyAccessConfigurationCollector = new ConfigurationCollector(
+        PackageManagerFactory::createPackageManager(),
+        new PropertyAccessConfigurationResolver(),
+        'PropertyAccess',
+    );
+
+    $serializerConfigurationCollector = new ConfigurationCollector(
+        PackageManagerFactory::createPackageManager(),
+        new SerializerConfigurationResolver(),
+        'Serializer',
+    );
+
+    $containerBuilder->addCompilerPass(new PropertyAccessCompilerPass($propertyAccessConfigurationCollector));
     $containerBuilder->addCompilerPass(new PropertyInfoCompilerPass());
-    $containerBuilder->addCompilerPass(new SerializerCompilerPass(new SerializerConfigurationResolver()));
+    $containerBuilder->addCompilerPass(new SerializerCompilerPass($serializerConfigurationCollector));
     $containerBuilder->addCompilerPass(new SerializerPass());
+    $containerBuilder->addCompilerPass(new PropertyInfoPass());
 };

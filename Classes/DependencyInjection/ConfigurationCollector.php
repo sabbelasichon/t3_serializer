@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Ssch\T3Serializer\DependencyInjection;
 
+use Ssch\T3Serializer\Contract\ConfigurationResolver;
 use TYPO3\CMS\Core\Package\PackageManager;
 
 final class ConfigurationCollector
@@ -19,17 +20,23 @@ final class ConfigurationCollector
 
     private string $configurationFileName;
 
-    public function __construct(PackageManager $packageManager, string $configurationFileName)
-    {
+    private ConfigurationResolver $configurationResolver;
+
+    public function __construct(
+        PackageManager $packageManager,
+        ConfigurationResolver $configurationResolver,
+        string $configurationFileName
+    ) {
         $this->packageManager = $packageManager;
-        $this->configurationFileName = $configurationFileName;
+        $this->configurationFileName = basename($configurationFileName);
+        $this->configurationResolver = $configurationResolver;
     }
 
-    public function collect(): \ArrayObject
+    public function collect(): array
     {
         $config = new \ArrayObject();
         foreach ($this->packageManager->getAvailablePackages() as $package) {
-            $serializerConfigurationFile = $package->getPackagePath() . 'Configuration/' . $this->configurationFileName;
+            $serializerConfigurationFile = $package->getPackagePath() . 'Configuration/' . $this->configurationFileName . '.php';
             if (file_exists($serializerConfigurationFile)) {
                 $serializerInPackage = require $serializerConfigurationFile;
                 if (is_array($serializerInPackage)) {
@@ -38,6 +45,6 @@ final class ConfigurationCollector
             }
         }
 
-        return $config;
+        return $this->configurationResolver->resolve($config->getArrayCopy());
     }
 }
