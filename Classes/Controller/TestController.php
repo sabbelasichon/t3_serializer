@@ -30,8 +30,12 @@ final class TestController extends ActionController
 
     public function indexAction(): ResponseInterface
     {
-        $context = (new ObjectNormalizerContextBuilder())
-            ->toArray();
+        if (class_exists(ObjectNormalizerContextBuilder::class)) {
+            $context = (new ObjectNormalizerContextBuilder())
+                ->toArray();
+        } else {
+            $context = [];
+        }
 
         $person1 = new Person('Torsten', 'Müller');
         $person2 = new Person('Frank', 'Müller');
