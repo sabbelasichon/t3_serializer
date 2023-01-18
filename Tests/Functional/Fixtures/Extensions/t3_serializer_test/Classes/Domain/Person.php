@@ -9,7 +9,7 @@ declare(strict_types=1);
  * LICENSE.txt file that was distributed with this source code.
  */
 
-namespace Ssch\T3Serializer\Domain;
+namespace Ssch\T3Serializer\Tests\Functional\Fixtures\Extensions\t3_serializer_test\Classes\Domain;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;

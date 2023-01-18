@@ -9,4 +9,6 @@ declare(strict_types=1);
  * LICENSE.txt file that was distributed with this source code.
  */
 
-return [];
+return [
+    'name_converter' => 'serializer.name_converter.camel_case_to_snake_case',
+];

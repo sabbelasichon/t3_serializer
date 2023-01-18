@@ -29,6 +29,7 @@ $EM_CONF['t3_serializer_test'] = [
     'constraints' => [
         'depends' => [
             'typo3' => '10.4.0-12.9.99',
+            't3_serializer' => '',
         ],
         'conflicts' => [],
         'suggests' => [],

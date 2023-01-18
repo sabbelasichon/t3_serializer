@@ -79,7 +79,8 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->autoconfigure()
         ->autowire();
 
-    $services->load('Ssch\\T3Serializer\\', __DIR__ . '/../Classes/');
+    $services->load('Ssch\\T3Serializer\\', __DIR__ . '/../Classes/')
+        ->exclude([__DIR__ . '/../Classes/DependencyInjection/']);
 
     $containerConfigurator->parameters()
         ->set('kernel.debug', ! Environment::getContext()->isProduction());
@@ -238,7 +239,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
             ]);
     }
 
-    $containerConfigurator->services()
+    $services
         ->set('property_accessor', PropertyAccessor::class)
         ->args([
             abstract_arg('magic methods allowed, set by the extension'),
@@ -251,7 +252,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->alias(PropertyAccessorInterface::class, 'property_accessor')
     ;
 
-    $containerConfigurator->services()
+    $services
         ->set('property_info', PropertyInfoExtractor::class)
         ->args([[], [], [], [], []])
         ->alias(PropertyAccessExtractorInterface::class, 'property_info')
@@ -282,7 +283,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->alias(PropertyWriteInfoExtractorInterface::class, 'property_info.reflection_extractor')
     ;
 
-    $containerConfigurator->services()
+    $services
         ->set('annotations.reader', AnnotationReader::class)
         ->call('addGlobalIgnoredName', [
             'required',
@@ -309,6 +310,6 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
     $containerBuilder->addCompilerPass(new PropertyAccessCompilerPass($propertyAccessConfigurationCollector));
     $containerBuilder->addCompilerPass(new PropertyInfoCompilerPass());
     $containerBuilder->addCompilerPass(new SerializerCompilerPass($serializerConfigurationCollector));
-    $containerBuilder->addCompilerPass(new SerializerPass());
     $containerBuilder->addCompilerPass(new PropertyInfoPass());
+    $containerBuilder->addCompilerPass(new SerializerPass());
 };

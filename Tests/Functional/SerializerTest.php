@@ -11,23 +11,27 @@ declare(strict_types=1);
 
 namespace Ssch\T3Serializer\Tests\Functional;
 
-use Ssch\T3Serializer\Domain\Person;
-use Ssch\T3Serializer\Tests\Functional\Fixtures\Extensions\t3_serializer_test\Classes\Service\MyService;
+use Spatie\Snapshots\MatchesSnapshots;
+use Ssch\T3Serializer\Tests\Functional\Fixtures\Extensions\t3_serializer_test\Classes\Domain\Person;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\SerializerInterface;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 final class SerializerTest extends FunctionalTestCase
 {
+    use MatchesSnapshots;
+
     protected $testExtensionsToLoad = [
         'typo3conf/ext/t3_serializer',
         'typo3conf/ext/t3_serializer/Tests/Functional/Fixtures/Extensions/t3_serializer_test',
     ];
 
-    private MyService $subject;
+    private SerializerInterface $subject;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->subject = $this->get(MyService::class);
+        $this->subject = $this->get('serializer');
     }
 
     public function testThatObjectIsSuccessfullySerializedToJson(): void
@@ -39,9 +43,6 @@ final class SerializerTest extends FunctionalTestCase
         $object->addPerson($person1);
         $object->addPerson($person2);
 
-        self::assertJsonStringEqualsJsonFile(
-            __DIR__ . '/Fixtures/Serializer/expected.json',
-            $this->subject->serialize($object)
-        );
+        $this->assertMatchesJsonSnapshot($this->subject->serialize($object, JsonEncoder::FORMAT));
     }
 }
