@@ -35,8 +35,8 @@ final class SerializeViewHelperTest extends FunctionalTestCase
         parent::setUp();
         $this->view = GeneralUtility::makeInstance(StandaloneView::class);
         $this->view->getRenderingContext()
-             ->getViewHelperResolver()
-             ->addNamespace('s', 'Ssch\\T3Serializer\\ViewHelpers');
+            ->getViewHelperResolver()
+            ->addNamespace('s', 'Ssch\\T3Serializer\\ViewHelpers');
     }
 
     public function testSerialization(): void
