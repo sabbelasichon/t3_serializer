@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Ssch\T3Serializer\Serializer\Normalizer;
 
+use Symfony\Component\PropertyInfo\Type;
 use Symfony\Component\Serializer\Exception\InvalidArgumentException;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
@@ -57,7 +58,7 @@ final class EnumerationNormalizer implements NormalizerInterface, DenormalizerIn
         return $object->__toString();
     }
 
-    public function supportsNormalization($data, string $format = null)
+    public function supportsNormalization($data, string $format = null): bool
     {
         return $data instanceof Enumeration;
     }
