@@ -1,9 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
+/*
+ * This file is part of the "t3_serializer" Extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
 
 namespace Ssch\T3Serializer\Serializer\Normalizer;
-
 
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
@@ -17,22 +23,26 @@ final class ObjectStorageNormalizer implements NormalizerInterface, NormalizerAw
 
     public function normalize($object, string $format = null, array $context = [])
     {
-        if(!$object instanceof ObjectStorage) {
+        if (! $object instanceof ObjectStorage) {
             throw new \InvalidArgumentException(sprintf('Object must be of type "%s"', ObjectStorage::class));
         }
 
-        if (!$this->normalizer instanceof NormalizerInterface) {
-            throw new \BadMethodCallException(sprintf('The "%s()" method cannot be called as nested normalizer doesn\'t implements "%s".', __METHOD__, NormalizerInterface::class));
+        if (! $this->normalizer instanceof NormalizerInterface) {
+            throw new \BadMethodCallException(sprintf(
+                'The "%s()" method cannot be called as nested normalizer doesn\'t implements "%s".',
+                __METHOD__,
+                NormalizerInterface::class
+            ));
         }
 
-        return array_map(function($item) use($format, $context) {
+        return array_map(function ($item) use ($format, $context) {
             return $this->normalizer->normalize($item, $format, $context);
         }, $object->toArray());
     }
 
     public function supportsNormalization($data, string $format = null): bool
     {
-        if (!$this->normalizer instanceof NormalizerInterface) {
+        if (! $this->normalizer instanceof NormalizerInterface) {
             return false;
         }
 
