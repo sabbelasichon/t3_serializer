@@ -19,6 +19,7 @@ use Ssch\T3Serializer\DependencyInjection\ConfigurationCollector;
 use Ssch\T3Serializer\DependencyInjection\PackageManagerFactory;
 use Ssch\T3Serializer\DependencyInjection\PropertyAccessConfigurationResolver;
 use Ssch\T3Serializer\DependencyInjection\SerializerConfigurationResolver;
+use Ssch\T3Serializer\Serializer\Normalizer\EnumerationNormalizer;
 use Ssch\T3Serializer\Serializer\Normalizer\ObjectStorageNormalizer;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\abstract_arg;
@@ -104,7 +105,11 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         // Normalizer
         ->set('serializer.normalizer.object_storage', ObjectStorageNormalizer::class)
         ->tag('serializer.normalizer', [
-            'priority' => -910,
+            'priority' => -900,
+        ])
+        ->set('serializer.normalizer.enumeration', EnumerationNormalizer::class)
+        ->tag('serializer.normalizer', [
+            'priority' => -900,
         ])
         ->set('serializer.normalizer.mime_message', MimeMessageNormalizer::class)
         ->args([service('serializer.normalizer.property')])

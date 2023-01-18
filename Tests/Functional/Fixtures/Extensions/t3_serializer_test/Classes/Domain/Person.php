@@ -29,6 +29,8 @@ final class Person
      */
     private ObjectStorage $persons;
 
+    private TypeEnumeration $typeEnumeration;
+
     public function __construct(string $firstName, string $lastName)
     {
         $this->firstName = $firstName;
@@ -72,5 +74,10 @@ final class Person
     public function getGender(): string
     {
         return 'Mr';
+    }
+
+    public function getTypeEnumeration(): TypeEnumeration
+    {
+        return new TypeEnumeration('type1');
     }
 }

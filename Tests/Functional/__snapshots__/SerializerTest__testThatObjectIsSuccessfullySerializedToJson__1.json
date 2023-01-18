@@ -6,14 +6,17 @@
             "first_name": "Torsten",
             "last_name": "M\u00fcller",
             "persons": [],
-            "salutation": "Mr"
+            "salutation": "Mr",
+            "type_enumeration": "type1"
         },
         {
             "first_name": "Frank",
             "last_name": "M\u00fcller",
             "persons": [],
-            "salutation": "Mr"
+            "salutation": "Mr",
+            "type_enumeration": "type1"
         }
     ],
-    "salutation": "Mr"
+    "salutation": "Mr",
+    "type_enumeration": "type1"
 }
