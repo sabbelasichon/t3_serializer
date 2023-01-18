@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Ssch\T3Serializer\Tests\Functional\Fixtures\Extensions\t3_serializer_test\Classes\Domain;
 
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
 
 final class Person
@@ -63,5 +64,13 @@ final class Person
         foreach ($persons as $person) {
             $this->persons->attach($person);
         }
+    }
+
+    /**
+     * @SerializedName("salutation")
+     */
+    public function getGender(): string
+    {
+        return 'Mr';
     }
 }

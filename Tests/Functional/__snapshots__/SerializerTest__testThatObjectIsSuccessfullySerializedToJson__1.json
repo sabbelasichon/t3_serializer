@@ -5,12 +5,15 @@
         {
             "first_name": "Torsten",
             "last_name": "M\u00fcller",
-            "persons": []
+            "persons": [],
+            "salutation": "Mr"
         },
         {
             "first_name": "Frank",
             "last_name": "M\u00fcller",
-            "persons": []
+            "persons": [],
+            "salutation": "Mr"
         }
-    ]
+    ],
+    "salutation": "Mr"
 }
