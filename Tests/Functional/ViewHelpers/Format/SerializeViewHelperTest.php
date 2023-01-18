@@ -21,10 +21,23 @@ final class SerializeViewHelperTest extends FunctionalTestCase
 {
     use MatchesSnapshots;
 
+    protected $initializeDatabase = false;
+
     protected $testExtensionsToLoad = [
         'typo3conf/ext/t3_serializer',
         'typo3conf/ext/t3_serializer/Tests/Functional/Fixtures/Extensions/t3_serializer_test',
     ];
+
+    protected StandaloneView $view;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->view = GeneralUtility::makeInstance(StandaloneView::class);
+        $this->view->getRenderingContext()
+             ->getViewHelperResolver()
+             ->addNamespace('s', 'Ssch\\T3Serializer\\ViewHelpers');
+    }
 
     public function testSerialization(): void
     {
@@ -35,16 +48,9 @@ final class SerializeViewHelperTest extends FunctionalTestCase
         $object->addPerson($person1);
         $object->addPerson($person2);
 
-        $view = GeneralUtility::makeInstance(StandaloneView::class);
+        $this->view->assign('data', $object);
+        $this->view->setTemplateSource('<f:format.raw><s:format.serialize>{data}</s:format.serialize></f:format.raw>');
 
-        $view->assign('data', $object);
-        $view->getRenderingContext()
-            ->getViewHelperResolver()
-            ->addNamespace('s', 'Ssch\\T3Serializer\\ViewHelpers');
-
-        $view->setTemplateSource('<s:format.serialize>{data}</s:format.serialize>');
-
-        $actual = $view->render();
-        $this->assertMatchesJsonSnapshot($actual);
+        $this->assertMatchesJsonSnapshot($this->view->render());
     }
 }

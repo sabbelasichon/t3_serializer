@@ -1,1 +1,22 @@
-null
+{
+    "first_name": "max",
+    "last_name": "mustermann",
+    "persons": [
+        {
+            "first_name": "Torsten",
+            "last_name": "M\u00fcller",
+            "persons": [],
+            "salutation": "Mr",
+            "type_enumeration": "type1"
+        },
+        {
+            "first_name": "Frank",
+            "last_name": "M\u00fcller",
+            "persons": [],
+            "salutation": "Mr",
+            "type_enumeration": "type1"
+        }
+    ],
+    "salutation": "Mr",
+    "type_enumeration": "type1"
+}
