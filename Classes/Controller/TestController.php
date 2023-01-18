@@ -43,9 +43,6 @@ final class TestController extends ActionController
         $json = $this->serializer->serialize($object, JsonEncoder::FORMAT, $context);
         $objects = $this->serializer->deserialize($json, Person::class, JsonEncoder::FORMAT);
 
-        \TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($objects);
-        exit;
-
         return new HtmlResponse($json);
     }
 }

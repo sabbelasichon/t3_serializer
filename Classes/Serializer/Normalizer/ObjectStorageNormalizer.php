@@ -27,14 +27,6 @@ final class ObjectStorageNormalizer implements NormalizerInterface, NormalizerAw
             throw new \InvalidArgumentException(sprintf('Object must be of type "%s"', ObjectStorage::class));
         }
 
-        if (! $this->normalizer instanceof NormalizerInterface) {
-            throw new \BadMethodCallException(sprintf(
-                'The "%s()" method cannot be called as nested normalizer doesn\'t implements "%s".',
-                __METHOD__,
-                NormalizerInterface::class
-            ));
-        }
-
         return array_map(function ($item) use ($format, $context) {
             return $this->normalizer->normalize($item, $format, $context);
         }, $object->toArray());
@@ -42,10 +34,6 @@ final class ObjectStorageNormalizer implements NormalizerInterface, NormalizerAw
 
     public function supportsNormalization($data, string $format = null): bool
     {
-        if (! $this->normalizer instanceof NormalizerInterface) {
-            return false;
-        }
-
         return $data instanceof ObjectStorage;
     }
 
