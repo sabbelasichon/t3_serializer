@@ -1,1 +1,16 @@
-{}
+{
+  "first_name": "max",
+  "last_name": "mustermann",
+  "persons": [
+    {
+      "first_name": "Torsten",
+      "last_name": "M\u00fcller",
+      "persons": []
+    },
+    {
+      "first_name": "Frank",
+      "last_name": "M\u00fcller",
+      "persons": []
+    }
+  ]
+}

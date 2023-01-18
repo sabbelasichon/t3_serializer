@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Ssch\T3Serializer\Tests\Functional;
 
+use Ssch\T3Serializer\Domain\Person;
 use Ssch\T3Serializer\Tests\Functional\Fixtures\Extensions\t3_serializer_test\Classes\Service\MyService;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
@@ -31,9 +32,13 @@ final class SerializerTest extends FunctionalTestCase
 
     public function testThatObjectIsSuccessfullySerializedToJson(): void
     {
-        $object = new \stdClass();
-        $object->firstName = 'Max';
-        $object->lastName = 'Mustermann';
+        $person1 = new Person('Torsten', 'Müller');
+        $person2 = new Person('Frank', 'Müller');
+
+        $object = new Person('max', 'mustermann');
+        $object->addPerson($person1);
+        $object->addPerson($person2);
+
         self::assertJsonStringEqualsJsonFile(
             __DIR__ . '/Fixtures/Serializer/expected.json',
             $this->subject->serialize($object)

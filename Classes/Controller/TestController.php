@@ -16,7 +16,7 @@ use Ssch\T3Serializer\Domain\Person;
 use Symfony\Component\Serializer\Context\Normalizer\ObjectNormalizerContextBuilder;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\SerializerInterface;
-use TYPO3\CMS\Core\Http\HtmlResponse;
+use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 
 final class TestController extends ActionController
@@ -44,9 +44,8 @@ final class TestController extends ActionController
         $object->addPerson($person1);
         $object->addPerson($person2);
 
-        $json = $this->serializer->serialize($object, JsonEncoder::FORMAT, $context);
-        $objects = $this->serializer->deserialize($json, Person::class, JsonEncoder::FORMAT);
+        $json = $this->serializer->normalize($object, JsonEncoder::FORMAT, $context);
 
-        return new HtmlResponse($json);
+        return new JsonResponse($json);
     }
 }
