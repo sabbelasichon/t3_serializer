@@ -18,6 +18,7 @@ use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use TYPO3\CMS\Core\Type\Enumeration;
+use TYPO3\CMS\Core\Type\Exception\InvalidEnumerationValueException;
 
 final class EnumerationNormalizer implements NormalizerInterface, DenormalizerInterface, CacheableSupportsMethodInterface
 {
@@ -39,7 +40,7 @@ final class EnumerationNormalizer implements NormalizerInterface, DenormalizerIn
 
         try {
             return $type::cast($data);
-        } catch (\ValueError $e) {
+        } catch (InvalidEnumerationValueException $e) {
             throw new InvalidArgumentException('The data must belong to an enumeration of type ' . $type);
         }
     }
