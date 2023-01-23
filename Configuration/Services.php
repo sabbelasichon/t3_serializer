@@ -52,6 +52,7 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Encoder\YamlEncoder;
 use Symfony\Component\Serializer\Mapping\ClassDiscriminatorFromClassMetadata;
 use Symfony\Component\Serializer\Mapping\ClassDiscriminatorResolverInterface;
+use Symfony\Component\Serializer\Mapping\Factory\CacheClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderChain;
@@ -202,18 +203,15 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->alias(ClassMetadataFactoryInterface::class, 'serializer.mapping.class_metadata_factory')
 
         // Cache
-//              ->set('serializer.mapping.cache_warmer', SerializerCacheWarmer::class)
-//              ->args([abstract_arg('The serializer metadata loaders'), param('serializer.mapping.cache.file')])
-//              ->tag('kernel.cache_warmer')
-//              ->set('serializer.mapping.cache.symfony', CacheItemPoolInterface::class)
-//              ->factory([PhpArrayAdapter::class, 'create'])
-//              ->args([param('serializer.mapping.cache.file'), service('cache.serializer')])
-//              ->set('serializer.mapping.cache_class_metadata_factory', CacheClassMetadataFactory::class)
-//              ->decorate('serializer.mapping.class_metadata_factory')
-//              ->args([
-//                  service('serializer.mapping.cache_class_metadata_factory.inner'),
-//                  service('serializer.mapping.cache.symfony'),
-//              ])
+        ->set('serializer.mapping.cache', CacheItemPoolInterface::class)
+        ->factory([service(Psr6Factory::class), 'create'])
+        ->args(['t3_serializer_class_metadata'])
+        ->set('serializer.mapping.cache_class_metadata_factory', CacheClassMetadataFactory::class)
+        ->decorate('serializer.mapping.class_metadata_factory')
+        ->args([
+            service('serializer.mapping.cache_class_metadata_factory.inner'),
+            service('serializer.mapping.cache'),
+        ])
 
         // Encoders
         ->set('serializer.encoder.xml', XmlEncoder::class)
@@ -257,8 +255,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
             abstract_arg('propertyReadInfoExtractor, set by the extension'),
             abstract_arg('propertyWriteInfoExtractor, set by the extension'),
         ])
-        ->alias(PropertyAccessorInterface::class, 'property_accessor')
-    ;
+        ->alias(PropertyAccessorInterface::class, 'property_accessor');
 
     $services->set('cache.property_info', CacheItemPoolInterface::class)
         ->factory([service(Psr6Factory::class), 'create'])
@@ -292,8 +289,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
             'priority' => -1000,
         ])
         ->alias(PropertyReadInfoExtractorInterface::class, 'property_info.reflection_extractor')
-        ->alias(PropertyWriteInfoExtractorInterface::class, 'property_info.reflection_extractor')
-    ;
+        ->alias(PropertyWriteInfoExtractorInterface::class, 'property_info.reflection_extractor');
 
     $services
         ->set('annotations.reader', AnnotationReader::class)
