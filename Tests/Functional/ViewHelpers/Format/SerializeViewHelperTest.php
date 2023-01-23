@@ -24,6 +24,7 @@ final class SerializeViewHelperTest extends FunctionalTestCase
     protected $initializeDatabase = false;
 
     protected $testExtensionsToLoad = [
+        'typo3conf/ext/typo3_psr_cache_adapter',
         'typo3conf/ext/t3_serializer',
         'typo3conf/ext/t3_serializer/Tests/Functional/Fixtures/Extensions/t3_serializer_test',
     ];
