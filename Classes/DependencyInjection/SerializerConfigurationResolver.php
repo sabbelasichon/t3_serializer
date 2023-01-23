@@ -24,6 +24,11 @@ final class SerializerConfigurationResolver implements ConfigurationResolver
         return $resolver->resolve($configuration);
     }
 
+    public function getFilename(): string
+    {
+        return 'Serializer';
+    }
+
     private function configureDefaultOptions(OptionsResolver $resolver): void
     {
         $resolver

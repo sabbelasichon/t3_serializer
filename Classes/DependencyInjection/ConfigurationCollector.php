@@ -22,13 +22,10 @@ final class ConfigurationCollector
 
     private ConfigurationResolver $configurationResolver;
 
-    public function __construct(
-        PackageManager $packageManager,
-        ConfigurationResolver $configurationResolver,
-        string $configurationFileName
-    ) {
+    public function __construct(PackageManager $packageManager, ConfigurationResolver $configurationResolver)
+    {
         $this->packageManager = $packageManager;
-        $this->configurationFileName = basename($configurationFileName);
+        $this->configurationFileName = basename($configurationResolver->getFilename());
         $this->configurationResolver = $configurationResolver;
     }
 
@@ -46,5 +43,10 @@ final class ConfigurationCollector
         }
 
         return $this->configurationResolver->resolve($config->getArrayCopy());
+    }
+
+    public function getConfigurationName(): string
+    {
+        return $this->configurationResolver->getFilename();
     }
 }
