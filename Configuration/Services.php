@@ -12,6 +12,8 @@ declare(strict_types=1);
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\Reader;
+use Psr\Cache\CacheItemPoolInterface;
+use Ssch\Cache\Factory\Psr6Factory;
 use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyAccessCompilerPass;
 use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyInfoCompilerPass;
 use Ssch\T3Serializer\DependencyInjection\Compiler\SerializerCompilerPass;
@@ -33,6 +35,7 @@ use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\Extractor\SerializerExtractor;
 use Symfony\Component\PropertyInfo\PropertyAccessExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyDescriptionExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyInfoCacheExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyInitializableExtractorInterface;
@@ -257,6 +260,10 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->alias(PropertyAccessorInterface::class, 'property_accessor')
     ;
 
+    $services->set('cache.property_info', CacheItemPoolInterface::class)
+        ->factory([service(Psr6Factory::class), 'create'])
+        ->args(['t3_serializer_property_info']);
+
     $services
         ->set('property_info', PropertyInfoExtractor::class)
         ->args([[], [], [], [], []])
@@ -266,9 +273,9 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->alias(PropertyTypeExtractorInterface::class, 'property_info')
         ->alias(PropertyListExtractorInterface::class, 'property_info')
         ->alias(PropertyInitializableExtractorInterface::class, 'property_info')
-//        ->set('property_info.cache', PropertyInfoCacheExtractor::class)
-//        ->decorate('property_info')
-//        ->args([service('property_info.cache.inner'), service('cache.property_info')])
+        ->set('property_info.cache', PropertyInfoCacheExtractor::class)
+        ->decorate('property_info')
+        ->args([service('property_info.cache.inner'), service('cache.property_info')])
 
         // Extractor
         ->set('property_info.reflection_extractor', ReflectionExtractor::class)
