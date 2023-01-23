@@ -14,6 +14,7 @@ use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\Reader;
 use Psr\Cache\CacheItemPoolInterface;
 use Ssch\Cache\Factory\Psr6Factory;
+use Ssch\T3Serializer\ConfigurationModuleProvider\SerializerProvider;
 use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyAccessCompilerPass;
 use Ssch\T3Serializer\DependencyInjection\Compiler\PropertyInfoCompilerPass;
 use Ssch\T3Serializer\DependencyInjection\Compiler\SerializerCompilerPass;
@@ -28,6 +29,7 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\abstract_
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\PropertyInfo\DependencyInjection\PropertyInfoPass;
@@ -76,6 +78,7 @@ use Symfony\Component\Serializer\Normalizer\UnwrappingDenormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Package\PackageManager;
 
 return static function (ContainerConfigurator $containerConfigurator, ContainerBuilder $containerBuilder): void {
     $services = $containerConfigurator->services();
@@ -89,6 +92,28 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
 
     $containerConfigurator->parameters()
         ->set('kernel.debug', ! Environment::getContext()->isProduction());
+
+    // Lowlevel Configuration Provider
+    $services->set(SerializerConfigurationResolver::class);
+    $services->set('serializer.serializer_configuration_collector', ConfigurationCollector::class)
+        ->args([service(PackageManager::class), service(SerializerConfigurationResolver::class)])
+        ->tag('serializer.configuration_collector');
+
+    $services->set(PropertyAccessConfigurationResolver::class);
+    $services->set('serializer.property_access_configuration_collector', ConfigurationCollector::class)
+        ->args([service(PackageManager::class), service(PropertyAccessConfigurationResolver::class)])
+        ->tag('serializer.configuration_collector');
+
+    $services->set(SerializerProvider::class)
+        ->args([tagged_iterator('serializer.configuration_collector')])
+        ->tag(
+            'lowlevel.configuration.module.provider',
+            [
+                'identifier' => 'serializer',
+                'label' => 'Serializer Configuration',
+                'after' => 'mfaProviders',
+            ]
+        );
 
     $services
         ->set('serializer', Serializer::class)
@@ -306,13 +331,11 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
     $propertyAccessConfigurationCollector = new ConfigurationCollector(
         PackageManagerFactory::createPackageManager(),
         new PropertyAccessConfigurationResolver(),
-        'PropertyAccess',
     );
 
     $serializerConfigurationCollector = new ConfigurationCollector(
         PackageManagerFactory::createPackageManager(),
         new SerializerConfigurationResolver(),
-        'Serializer',
     );
 
     $containerBuilder->addCompilerPass(new PropertyAccessCompilerPass($propertyAccessConfigurationCollector));

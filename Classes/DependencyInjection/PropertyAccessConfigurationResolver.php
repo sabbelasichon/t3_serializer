@@ -24,6 +24,11 @@ final class PropertyAccessConfigurationResolver implements ConfigurationResolver
         return $resolver->resolve($configuration);
     }
 
+    public function getFilename(): string
+    {
+        return 'PropertyAccess';
+    }
+
     private function configureDefaultOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefault('magic_call', false);

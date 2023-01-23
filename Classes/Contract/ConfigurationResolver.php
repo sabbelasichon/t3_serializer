@@ -14,4 +14,6 @@ namespace Ssch\T3Serializer\Contract;
 interface ConfigurationResolver
 {
     public function resolve(array $configuration): array;
+
+    public function getFilename(): string;
 }
