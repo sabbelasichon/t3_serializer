@@ -1,0 +1,23 @@
+{
+    "type": "Type",
+    "title": "Validation errors occurred",
+    "status": 405,
+    "detail": "title: No valid title given\nmessage: No valid message given",
+    "instance": "instance",
+    "violations": [
+        {
+            "propertyPath": "title",
+            "title": "Title is invalid",
+            "parameters": {
+                "argument": "1"
+            },
+            "type": "urn:uuid:1678219993"
+        },
+        {
+            "propertyPath": "message",
+            "title": "Message is invalid",
+            "parameters": [],
+            "type": "urn:uuid:1678219993"
+        }
+    ]
+}

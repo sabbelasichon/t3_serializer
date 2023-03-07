@@ -24,6 +24,7 @@ use Ssch\T3Serializer\DependencyInjection\PropertyAccessConfigurationResolver;
 use Ssch\T3Serializer\DependencyInjection\SerializerConfigurationResolver;
 use Ssch\T3Serializer\Serializer\Normalizer\EnumerationNormalizer;
 use Ssch\T3Serializer\Serializer\Normalizer\ObjectStorageNormalizer;
+use Ssch\T3Serializer\Serializer\Normalizer\ValidationResultNormalizer;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\abstract_arg;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -91,7 +92,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->exclude([__DIR__ . '/../Classes/DependencyInjection/']);
 
     $containerConfigurator->parameters()
-        ->set('kernel.debug', ! Environment::getContext()->isProduction());
+        ->set('typo3.debug', ! Environment::getContext()->isProduction());
 
     // Lowlevel Configuration Provider
     $services->set(SerializerConfigurationResolver::class);
@@ -158,6 +159,13 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->tag('serializer.normalizer', [
             'priority' => -920,
         ])
+        ->set('serializer.normalizer.error_violation_list', ValidationResultNormalizer::class)
+        ->args([
+            1 => service('serializer.name_converter.metadata_aware'),
+        ])
+        ->tag('serializer.normalizer', [
+            'priority' => -915,
+        ])
         ->set('serializer.normalizer.datetime', DateTimeNormalizer::class)
         ->tag('serializer.normalizer', [
             'priority' => -910,
@@ -168,7 +176,7 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
             'priority' => -950,
         ])
         ->set('serializer.normalizer.problem', ProblemNormalizer::class)
-        ->args([param('kernel.debug')])
+        ->args([param('typo3.debug')])
         ->tag('serializer.normalizer', [
             'priority' => -890,
         ])
