@@ -76,6 +76,7 @@ use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Normalizer\UnwrappingDenormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Package\PackageManager;
 
 return static function (ContainerConfigurator $containerConfigurator, ContainerBuilder $containerBuilder): void {
@@ -87,6 +88,9 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
 
     $services->load('Ssch\\T3Serializer\\', __DIR__ . '/../Classes/')
         ->exclude([__DIR__ . '/../Classes/DependencyInjection/']);
+
+    $containerConfigurator->parameters()
+        ->set('kernel.debug', ! Environment::getContext()->isProduction());
 
     // Lowlevel Configuration Provider
     $services->set(SerializerConfigurationResolver::class);
