@@ -24,10 +24,10 @@ use Ssch\T3Serializer\DependencyInjection\PropertyAccessConfigurationResolver;
 use Ssch\T3Serializer\DependencyInjection\SerializerConfigurationResolver;
 use Ssch\T3Serializer\Serializer\Normalizer\EnumerationNormalizer;
 use Ssch\T3Serializer\Serializer\Normalizer\ObjectStorageNormalizer;
+use Ssch\T3Serializer\Serializer\Normalizer\ValidationResultNormalizer;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\abstract_arg;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -72,7 +72,6 @@ use Symfony\Component\Serializer\Normalizer\MimeMessageNormalizer;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Normalizer\ProblemNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Normalizer\UnwrappingDenormalizer;
 use Symfony\Component\Serializer\Serializer;
@@ -158,6 +157,13 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->tag('serializer.normalizer', [
             'priority' => -920,
         ])
+        ->set('serializer.normalizer.error_violation_list', ValidationResultNormalizer::class)
+        ->args([
+            1 => service('serializer.name_converter.metadata_aware'),
+        ])
+        ->tag('serializer.normalizer', [
+            'priority' => -915,
+        ])
         ->set('serializer.normalizer.datetime', DateTimeNormalizer::class)
         ->tag('serializer.normalizer', [
             'priority' => -910,
@@ -166,11 +172,6 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->args([null, null])
         ->tag('serializer.normalizer', [
             'priority' => -950,
-        ])
-        ->set('serializer.normalizer.problem', ProblemNormalizer::class)
-        ->args([param('kernel.debug')])
-        ->tag('serializer.normalizer', [
-            'priority' => -890,
         ])
         ->set('serializer.denormalizer.unwrapping', UnwrappingDenormalizer::class)
         ->args([service('serializer.property_accessor')])
