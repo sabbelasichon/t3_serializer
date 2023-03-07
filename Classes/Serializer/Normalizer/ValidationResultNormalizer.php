@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace Ssch\T3Serializer\Serializer\Normalizer;
 
-use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
+use Symfony\Component\Serializer\NameConverter\AdvancedNameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use TYPO3\CMS\Extbase\Error\Result;
@@ -33,9 +33,9 @@ final class ValidationResultNormalizer implements NormalizerInterface, Cacheable
 
     private array $defaultContext;
 
-    private ?NameConverterInterface $nameConverter;
+    private ?AdvancedNameConverterInterface $nameConverter;
 
-    public function __construct(array $defaultContext = [], NameConverterInterface $nameConverter = null)
+    public function __construct(array $defaultContext = [], AdvancedNameConverterInterface $nameConverter = null)
     {
         $this->defaultContext = $defaultContext;
         $this->nameConverter = $nameConverter;
@@ -43,7 +43,7 @@ final class ValidationResultNormalizer implements NormalizerInterface, Cacheable
 
     public function hasCacheableSupportsMethod(): bool
     {
-        return __CLASS__ === self::class;
+        return true;
     }
 
     public function normalize($object, string $format = null, array $context = [])
@@ -55,7 +55,7 @@ final class ValidationResultNormalizer implements NormalizerInterface, Cacheable
         $violations = [];
         $messages = [];
         foreach ($object->getFlattenedErrors() as $propertyPath => $propertyErrors) {
-            $propertyPath = $this->nameConverter ? $this->nameConverter->normalize(
+            $propertyPath = $this->nameConverter !== null ? $this->nameConverter->normalize(
                 $propertyPath,
                 null,
                 $format,
@@ -75,7 +75,7 @@ final class ValidationResultNormalizer implements NormalizerInterface, Cacheable
 
                 $violations[] = $violationEntry;
 
-                $prefix = $propertyPath ? sprintf('%s: ', $propertyPath) : '';
+                $prefix = $propertyPath !== '' ? sprintf('%s: ', $propertyPath) : '';
                 $messages[] = $prefix . $propertyError->getMessage();
             }
         }

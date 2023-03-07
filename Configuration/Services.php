@@ -28,7 +28,6 @@ use Ssch\T3Serializer\Serializer\Normalizer\ValidationResultNormalizer;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\abstract_arg;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -73,12 +72,10 @@ use Symfony\Component\Serializer\Normalizer\MimeMessageNormalizer;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Normalizer\ProblemNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Normalizer\UnwrappingDenormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
-use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Package\PackageManager;
 
 return static function (ContainerConfigurator $containerConfigurator, ContainerBuilder $containerBuilder): void {
@@ -90,9 +87,6 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
 
     $services->load('Ssch\\T3Serializer\\', __DIR__ . '/../Classes/')
         ->exclude([__DIR__ . '/../Classes/DependencyInjection/']);
-
-    $containerConfigurator->parameters()
-        ->set('typo3.debug', ! Environment::getContext()->isProduction());
 
     // Lowlevel Configuration Provider
     $services->set(SerializerConfigurationResolver::class);
@@ -174,11 +168,6 @@ return static function (ContainerConfigurator $containerConfigurator, ContainerB
         ->args([null, null])
         ->tag('serializer.normalizer', [
             'priority' => -950,
-        ])
-        ->set('serializer.normalizer.problem', ProblemNormalizer::class)
-        ->args([param('typo3.debug')])
-        ->tag('serializer.normalizer', [
-            'priority' => -890,
         ])
         ->set('serializer.denormalizer.unwrapping', UnwrappingDenormalizer::class)
         ->args([service('serializer.property_accessor')])
